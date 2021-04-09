@@ -1,8 +1,8 @@
 {
-  "name": "@hellowuxin/mindmap",
-  "version": "2.1.4",
+  "name": "lbd-mindmap",
+  "version": "1.0.0",
   "description": "Mindmap Vue Component",
-  "author": "伍鑫",
+  "author": "samstar",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

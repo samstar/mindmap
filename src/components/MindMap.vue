@@ -24,7 +24,7 @@
       </div>
     </div>
     <div class="buttonList right-bottom">
-      <button v-show="gps" class="icon" ref="gps" type="button" @click="makeCenter()">
+      <button v-show="gps" class="icon" ref="gps" type="button" @click="fitContent()">
         <i class="gps"></i>
       </button>
       <button v-show="fitView" class="icon" ref="fitView" type="button" @click="fitContent()">
@@ -231,6 +231,15 @@ export default class MindMap extends Vue {
     this.makeNodeAdd(this.showNodeAdd)
     this.makeContextMenu(this.contextMenu)
   }
+  generateUUID() {
+    let d = new Date().getTime()
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = (d + Math.random() * 16) % 16 | 0
+      d = Math.floor(d / 16)
+      return (c === 'x' ? r : (r & 0x7 | 0x8)).toString(16)
+    })
+    return uuid
+  }
   // 事件
   makeKeyboard(val: boolean) {
     val ? this.mindmapSvg.on('keydown', this.svgKeyDown).on('keyup', this.svgKeyUp)
@@ -336,15 +345,30 @@ export default class MindMap extends Vue {
     await d3.transition().end().then(() => {
       this.mindmapSvg.call(this.zoom.translateTo, 0, 0)
     })
+
+    // const rect = (this.$refs.content as SVGGElement).getBBox()
+    // const svgBCR = (this.$refs.svg as SVGGElement).getBoundingClientRect()
+    // const svgCenter = { x: svgBCR.width / 2, y: svgBCR.height / 2 }
+    // const div = this.$refs.mindmap
+    // const multipleX = div.offsetWidth / rect.width
+    // const multipleY = div.offsetHeight / rect.height
+    // const multiple = Math.min(multipleX, multipleY)
+    // const gCenter = { x: rect.width * multiple, y: rect.height * multiple }
+
+    // this.mindmapSvg.call(this.zoom.translateTo, -rect.x * multiple + svgCenter.x - gCenter.x, -rect.y * multiple + svgCenter.y - gCenter.y)
   }
   async fitContent() { // 适应窗口大小
     await d3.transition().end().then(() => {
       const rect = (this.$refs.content as SVGGElement).getBBox()
+      // const svgBCR = (this.$refs.svg as SVGGElement).getBoundingClientRect()
+      // const svgCenter = { x: svgBCR.width / 2, y: svgBCR.height / 2 }
       const div = this.$refs.mindmap
       const multipleX = div.offsetWidth / rect.width
       const multipleY = div.offsetHeight / rect.height
       const multiple = Math.min(multipleX, multipleY)
+      // const gCenter = { x: rect.width * multiple, y: rect.height * multiple }
 
+      // this.mindmapSvg.call(this.zoom.translateTo, -rect.x * multiple + svgCenter.x - gCenter.x, -rect.y * multiple + svgCenter.y - gCenter.y)
       this.mindmapSvg.transition(this.easePolyInOut as any).call(this.zoom.scaleTo, multiple)
     })
   }
@@ -352,7 +376,7 @@ export default class MindMap extends Vue {
   add(dParent: Mdata, d: Data) {
     console.log('add trigger')
     this.toRecord = true
-    const nd = mmdata.add(dParent.id, d)
+    const nd = mmdata.add(dParent.index, d)
     this.updateMmdata()
     this.$emit('add', dParent, d)
     return nd
@@ -360,7 +384,7 @@ export default class MindMap extends Vue {
   insert(dPosition: Mdata, d: Data, i = 0) {
     console.log('insert trigger')
     this.toRecord = true
-    const nd = mmdata.insert(dPosition.id, d, i)
+    const nd = mmdata.insert(dPosition.index, d, i)
     this.updateMmdata()
     this.$emit('insert', dPosition, d, i)
     return nd
@@ -368,14 +392,14 @@ export default class MindMap extends Vue {
   move(del: Mdata, insert?: Mdata, i = 0) {
     console.log('move trigger')
     this.toRecord = true
-    mmdata.move(del.id, insert?.id, i)
+    mmdata.move(del.index, insert?.index, i)
     this.updateMmdata()
     this.$emit('move', del, insert, i)
   }
   reparent(p: Mdata, d: Mdata) {
     console.log('reparent trigger')
     this.toRecord = true
-    mmdata.reparent(p.id, d.id)
+    mmdata.reparent(p.index, d.index)
     this.updateMmdata()
     this.$emit('reparent', p, d)
   }
@@ -385,11 +409,11 @@ export default class MindMap extends Vue {
     if (Array.isArray(s)) {
       const idArr = []
       for (let i = 0; i < s.length; i++) {
-        idArr.push(s[i].id)
+        idArr.push(s[i].index)
       }
       mmdata.del(idArr)
     } else {
-      mmdata.del(s.id)
+      mmdata.del(s.index)
     }
     this.updateMmdata()
     this.$emit('del', s)
@@ -398,7 +422,7 @@ export default class MindMap extends Vue {
     console.log('edit trigger')
     if (d.name !== name) { // 有改变
       this.toRecord = true
-      const nd = mmdata.rename(d.id, name)
+      const nd = mmdata.rename(d.index, name)
       this.updateMmdata()
       this.$emit('edit', d, name)
       return nd
@@ -409,11 +433,11 @@ export default class MindMap extends Vue {
     if (Array.isArray(s)) {
       const idArr = []
       for (let i = 0; i < s.length; i++) {
-        idArr.push(s[i].id)
+        idArr.push(s[i].index)
       }
       mmdata.collapse(idArr)
     } else {
-      mmdata.collapse(s.id)
+      mmdata.collapse(s.index)
     }
     this.updateMmdata()
   }
@@ -422,11 +446,11 @@ export default class MindMap extends Vue {
     if (Array.isArray(s)) {
       const idArr = []
       for (let i = 0; i < s.length; i++) {
-        idArr.push(s[i].id)
+        idArr.push(s[i].index)
       }
       mmdata.expand(idArr)
     } else {
-      mmdata.expand(s.id)
+      mmdata.expand(s.index)
     }
     this.updateMmdata()
   }
@@ -452,11 +476,14 @@ export default class MindMap extends Vue {
         const seleDepth = seleData.depth
         const im = seleData.data
         const pNode = seleNode.parentNode as Element
+        const pNodePath = seleData.parent?.data.path
+        console.log(pNodePath)
+        const id = this.generateUUID()
 
         switch (keyName) {
           case 'Tab': {
             d3.event.preventDefault()
-            const nd = this.add(im, { name: '子部门' })
+            const nd = this.add(im, { name: '子部门', id: id, path: `${im.path}.${id}`, parentId: im.id })
             if (nd) {
               this.editNew(nd, seleDepth + 1, pNode)
             }
@@ -465,12 +492,12 @@ export default class MindMap extends Vue {
           case 'Enter': {
             d3.event.preventDefault()
             if (pNode === this.$refs.content) { // 根节点enter时，等效tab
-              const nd = this.add(im, { name: '子部门' })
+              const nd = this.add(im, { name: '子部门', id: id, path: `${im.path}.${id}`, parentId: im.id })
               if (nd) {
                 this.editNew(nd, seleDepth + 1, pNode)
               }
             } else {
-              const nd = this.insert(im, { name: '子部门' }, 1)
+              const nd = this.insert(im, { name: '子部门', id: id, path: `${pNodePath}.${id}`, parentId: im.parentId }, 1)
               if (nd) {
                 this.editNew(nd, seleDepth, pNode)
               }
@@ -506,7 +533,7 @@ export default class MindMap extends Vue {
       (n[i] as Element).removeAttribute('id')
       const nd = this.updateName(d.data, editText)
       if (nd) {
-        this.$emit('updateNodeName', mmdata.getSource(nd.id), nd.id)
+        this.$emit('updateNodeName', mmdata.getSource(nd.index), nd.index)
       }
     })
     editP.setAttribute('contenteditable', 'false')
@@ -557,7 +584,7 @@ export default class MindMap extends Vue {
   editNew(newD: Mdata, depth: number, pNode: Element) { // 聚焦新节点
     d3.transition().end().then(() => {
       const node = d3.select(pNode).selectAll(`g.node.depth_${depth}`)
-        .filter((b) => (b as FlexNode).data.id === newD.id)
+        .filter((b) => (b as FlexNode).data.index === newD.index)
         .node()
 
       this.editNode(node as Element)
@@ -600,7 +627,7 @@ export default class MindMap extends Vue {
       } else {
         sele.setAttribute('__click__', '1')
         if (!dragFlag) {
-          this.$emit('click', mmdata.getSource(d.data.id), d.data.id)
+          this.$emit('click', mmdata.getSource(d.data.index), d.data.index)
         }
       }
     }
@@ -642,7 +669,8 @@ export default class MindMap extends Vue {
     if ((n[i] as SVGElement).style.opacity === '1') {
       d3.event.stopPropagation()
       const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
-      const newD = this.add(d.data, { name: '子部门' })
+      const id = this.generateUUID()
+      const newD = this.add(d.data, { name: '子部门', id: id, path: `${d.data.path}.${id}`, parentId: d.data.id })
       this.mouseLeave(d, i, n)
       if (newD) {
         this.editNew(newD, d.depth + 1, n[i].parentNode as Element)
@@ -696,7 +724,7 @@ export default class MindMap extends Vue {
 
     d3.select(draggedNode).transition(tran as any).attr('transform', `translate(${targetY},${targetX})`)
     // 更新draggedNode与父节点的path
-    d3.select(`path#path_${d.data.id}`).transition(tran as any).attr('d', (d) => path(d as FlexNode))
+    d3.select(`path#path_${d.data.index}`).transition(tran as any).attr('d', (d) => path(d as FlexNode))
   }
   renewOffset(d: FlexNode, px: number, py: number) { // 更新偏移量
     d.px = px
@@ -753,7 +781,7 @@ export default class MindMap extends Vue {
       const newParentD = d3.select(newParentNode).data()[0] as FlexNode
       reparent(newParentD.data, d.data)
     } else {
-      const LR = (d.data.id.split('-').length === 2) && ((d.y > 0 && d.y + d.py < 0) || (d.y < 0 && d.y + d.py > 0)) // 左右节点变换
+      const LR = (d.data.index.split('-').length === 2) && ((d.y > 0 && d.y + d.py < 0) || (d.y < 0 && d.y + d.py > 0)) // 左右节点变换
       const flag = LR ? (a: FlexNode) => a.data.left !== d.data.left : (a: FlexNode) => a.data.left === d.data.left
       const draggedParentNode = d3.select(draggedNode.parentNode as Element)
       const draggedBrotherNodes = (draggedParentNode.selectAll(`g.depth_${d.depth}`) as d3.Selection<Element, FlexNode, Element, FlexNode>)
@@ -855,12 +883,12 @@ export default class MindMap extends Vue {
   gTransform(d: FlexNode) { return `translate(${d.dy},${d.dx})` }
   foreignX(d: FlexNode) {
     const { xSpacing, foreignBorderWidth } = this
-    return -foreignBorderWidth + (d.data.id !== '0' ? (d.data.left ? -d.size[1] + xSpacing : 0) : -(d.size[1] - xSpacing * 2) / 2)
+    return -foreignBorderWidth + (d.data.index !== '0' ? (d.data.left ? -d.size[1] + xSpacing : 0) : -(d.size[1] - xSpacing * 2) / 2)
   }
-  foreignY(d: FlexNode) { return -this.foreignBorderWidth + (d.data.id !== '0' ? -d.size[0] : -d.size[0] / 2) }
+  foreignY(d: FlexNode) { return -this.foreignBorderWidth + (d.data.index !== '0' ? -d.size[0] : -d.size[0] / 2) }
   gBtnTransform(d: FlexNode) {
     const { xSpacing, gBtnSide } = this
-    let x = d.data.id === '0' ? (d.size[1] - xSpacing * 2) / 2 + 8 : d.size[1] - xSpacing + 8
+    let x = d.data.index === '0' ? (d.size[1] - xSpacing * 2) / 2 + 8 : d.size[1] - xSpacing + 8
     if (d.data.left) {
       x = -x - gBtnSide
     }
@@ -869,19 +897,19 @@ export default class MindMap extends Vue {
   gBtnVisible(d: FlexNode) { return ((d.data._children?.length || 0) <= 0) ? 'visible' : 'hidden' }
   gEllTransform(d: FlexNode) {
     const { xSpacing } = this
-    let x = d.data.id === '0' ? (d.size[1] - xSpacing * 2) / 2 + 6 : d.size[1] - xSpacing + 6
+    let x = d.data.index === '0' ? (d.size[1] - xSpacing * 2) / 2 + 6 : d.size[1] - xSpacing + 6
     if (d.data.left) {
       x = -x - 16
     }
     return `translate(${x},${0})`
   }
   gEllVisible(d: FlexNode) { return (d.data._children?.length || 0) > 0 ? 'visible' : 'hidden' }
-  pathId(d: FlexNode) { return `path_${d.data.id}` }
+  pathId(d: FlexNode) { return `path_${d.data.index}` }
   pathClass(d: FlexNode) { return `depth_${d.depth}` }
   pathColor(d: FlexNode) { return d.data.color || 'white' }
   path(d: FlexNode) {
     const { xSpacing, link } = this
-    const temp = (d.parent && d.parent.data.id === '0') ? -d.dy : (d.data.left ? xSpacing : -xSpacing)
+    const temp = (d.parent && d.parent.data.index === '0') ? -d.dy : (d.data.left ? xSpacing : -xSpacing)
     const sourceX = temp - d.py
     const sourceY = 0 - d.dx - d.px
     let textWidth = d.size[1] - xSpacing
@@ -934,7 +962,7 @@ export default class MindMap extends Vue {
 
     const enterData = enter.data()
     if (enterData.length) {
-      if (enterData[0].data.id !== '0') {
+      if (enterData[0].data.index !== '0') {
         gNode.append('path').attr('id', pathId).attr('class', pathClass).lower().attr('stroke', pathColor)
           .attr('d', path)
       }
@@ -999,19 +1027,19 @@ export default class MindMap extends Vue {
     const layout = flextree({ spacing: ySpacing })
     const yGap = mmdata.data.size[1] / 2
     // left
-    const tl = layout.hierarchy(mmdata.data, (d: Mdata) => d.id.split('-').length === 1 ? d.children?.filter(d => d.left) : d.children)
+    const tl = layout.hierarchy(mmdata.data, (d: Mdata) => d.index.split('-').length === 1 ? d.children?.filter(d => d.left) : d.children)
     layout(tl)
-    tl.each((a: FlexNode) => { if (a.data.id !== '0') { a.y = -a.y + yGap } })
+    tl.each((a: FlexNode) => { if (a.data.index !== '0') { a.y = -a.y + yGap } })
     // right
-    const tr = layout.hierarchy(mmdata.data, (d: Mdata) => d.id.split('-').length === 1 ? d.children?.filter(d => !d.left) : d.children)
+    const tr = layout.hierarchy(mmdata.data, (d: Mdata) => d.index.split('-').length === 1 ? d.children?.filter(d => !d.left) : d.children)
     layout(tr)
-    tr.each((a: FlexNode) => { if (a.data.id !== '0') { a.y = a.y - yGap } }) // 往同个方向移动固定距离
+    tr.each((a: FlexNode) => { if (a.data.index !== '0') { a.y = a.y - yGap } }) // 往同个方向移动固定距离
     // all
     tr.children = tl.children
       ? (tr.children ? tr.children.concat(tl.children) : tl.children)
       : tr.children
     tr.each((a: FlexNode) => { // x纵轴 y横轴 dx dy相对偏移
-      if (a.data.id !== '0') {
+      if (a.data.index !== '0') {
         a.x += a.size[0] / 2
       }
       a.dx = a.x - (a.parent ? a.parent.x : 0)
@@ -1056,7 +1084,7 @@ export default class MindMap extends Vue {
       }
     }, { immediate: true, deep: true })
   }
-  async mounted() {
+  async mountHandler() {
     this.init()
     this.mindmapSvg.on('mousedown', this.multiSelectStart)
     this.mindmapSvg.on('mousemove', this.multiSelect)
@@ -1065,6 +1093,9 @@ export default class MindMap extends Vue {
     await this.makeCenter()
     await this.fitContent()
     this.mindmapG.style('opacity', 1)
+  }
+  async mounted() {
+    // await this.mountHandler()
   }
 }
 </script>

@@ -1,5 +1,8 @@
 interface Data {
   name: string
+  id: string,
+  path: string,
+  parentId: string,
   children?: Array<Data>
   _children?: Array<Data>
   left?: boolean
@@ -7,7 +10,10 @@ interface Data {
 
 interface Mdata {
   name: string
-  id: string
+  index: string,
+  id: string,
+  path: string,
+  parentId: string,
   color: string
   gKey: number
   size: number[]

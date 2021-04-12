@@ -8,7 +8,7 @@ let gKey = 0
 
 function initColor(d: Mdata, c?: string) { // 初始化颜色
   let color
-  if (d.id !== '0') {
+  if (d.index !== '0') {
     color = c || colorScale(`${colorNumber += 1}`)
     // d.color = color
     d.color = '#ccc'
@@ -27,7 +27,7 @@ function initColor(d: Mdata, c?: string) { // 初始化颜色
 }
 
 function initSize(d: Mdata) { // 初始化size
-  d.size = size(d.name, d.id === '0')
+  d.size = size(d.name, d.index === '0')
   const { children, _children } = d
   if (children) {
     for (let i = 0; i < children.length; i += 1) {
@@ -43,7 +43,7 @@ function initSize(d: Mdata) { // 初始化size
 
 function _getSource(d: Mdata) { // 返回源数据
   const { children, _children } = d
-  const nd: Data = { name: d.name }
+  const nd: Data = { name: d.name, id: d.id, path: d.path, parentId: d.parentId }
   nd.left = d.left
   if (children) {
     const { length } = children
@@ -62,8 +62,8 @@ function _getSource(d: Mdata) { // 返回源数据
   return nd
 }
 
-function initId(d: Mdata, id = '0') { // 初始化唯一标识：待优化
-  d.id = id
+function initId(d: Mdata, index = '0') { // 初始化唯一标识：待优化
+  d.index = index
   d.gKey = d.gKey || (gKey += 1)
   const { children, _children } = d
 
@@ -72,20 +72,20 @@ function initId(d: Mdata, id = '0') { // 初始化唯一标识：待优化
   } else {
     if (children) {
       for (let i = 0; i < children.length;) {
-        if (children[i].id === 'del') {
+        if (children[i].index === 'del') {
           children.splice(i, 1)
         } else {
-          initId(children[i], `${id}-${i}`)
+          initId(children[i], `${index}-${i}`)
           i += 1
         }
       }
     }
     if (_children) {
       for (let i = 0; i < _children.length;) {
-        if (_children[i].id === 'del') {
+        if (_children[i].index === 'del') {
           _children.splice(i, 1)
         } else {
-          initId(_children[i], `${id}-${i}`)
+          initId(_children[i], `${index}-${i}`)
           i += 1
         }
       }
@@ -133,7 +133,7 @@ class ImData {
 
   getSource(id = '0') {
     const d = this.find(id)
-    return d ? _getSource(d) : { name: '' }
+    return d ? _getSource(d) : { name: '', id: '', path: '', parentId: '' }
   }
 
   resize(id = '0') { // 更新size
@@ -161,7 +161,7 @@ class ImData {
       const d = this.find(id)
       if (d) {
         d.name = name
-        d.size = size(name, d.id === '0')
+        d.size = size(name, d.index === '0')
       }
       return d
     }
@@ -202,16 +202,16 @@ class ImData {
         const parent = this.find(idArr.join('-'))
         if (delIndex && parent) {
           if (parent.children) {
-            parent.children[~~delIndex].id = 'del' // 更新id时删除
+            parent.children[~~delIndex].index = 'del' // 更新id时删除
           }
-          if (p === undefined || (p.id.split('-').length > parent.id.split('-').length)) { // 找出最高的parent
+          if (p === undefined || (p.index.split('-').length > parent.index.split('-').length)) { // 找出最高的parent
             p = parent
           }
         }
       }
     }
     if (p) {
-      initId(p, p.id)
+      initId(p, p.index)
     }
   }
 
@@ -226,7 +226,7 @@ class ImData {
         const c: Mdata = JSON.parse(JSON.stringify(child))
         parent.children ? parent.children.push(c) : parent.children = [c]
         initColor(c, parent.color || colorScale(`${colorNumber += 1}`))
-        initId(c, `${parent.id}-${parent.children.length - 1}`)
+        initId(c, `${parent.index}-${parent.children.length - 1}`)
         c.left = parent.left
         initSize(c)
         return c
@@ -248,7 +248,7 @@ class ImData {
           c.left = pChildren[~~bId].left
         }
         initColor(c, parent.color || colorScale(`${colorNumber += 1}`))
-        initId(parent, parent.id)
+        initId(parent, parent.index)
         initSize(c)
         return c
       }
@@ -282,7 +282,7 @@ class ImData {
             initLeft(del, insert.left)
           }
           parent.children.splice(insertIndex + i, 0, del)
-          initId(parent, parent.id)
+          initId(parent, parent.index)
         }
       }
     }
@@ -303,8 +303,8 @@ class ImData {
 
           initColor(del, parentId === '0' ? colorScale(`${colorNumber += 1}`) : np.color)
           initLeft(del, parentId === '0' ? del.left : np.left)
-          initId(np, np.id)
-          initId(delParent, delParent.id)
+          initId(np, np.index)
+          initId(delParent, delParent.index)
         }
       }
     }

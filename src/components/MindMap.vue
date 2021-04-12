@@ -350,28 +350,37 @@ export default class MindMap extends Vue {
   }
   // 数据操作
   add(dParent: Mdata, d: Data) {
+    console.log('add trigger')
     this.toRecord = true
     const nd = mmdata.add(dParent.id, d)
     this.updateMmdata()
+    this.$emit('add', dParent, d)
     return nd
   }
   insert(dPosition: Mdata, d: Data, i = 0) {
+    console.log('insert trigger')
     this.toRecord = true
     const nd = mmdata.insert(dPosition.id, d, i)
     this.updateMmdata()
+    this.$emit('insert', dPosition, d, i)
     return nd
   }
   move(del: Mdata, insert?: Mdata, i = 0) {
+    console.log('move trigger')
     this.toRecord = true
     mmdata.move(del.id, insert?.id, i)
     this.updateMmdata()
+    this.$emit('move', del, insert, i)
   }
   reparent(p: Mdata, d: Mdata) {
+    console.log('reparent trigger')
     this.toRecord = true
     mmdata.reparent(p.id, d.id)
     this.updateMmdata()
+    this.$emit('reparent', p, d)
   }
   del(s: Mdata | Mdata[]) {
+    console.log('del trigger')
     this.toRecord = true
     if (Array.isArray(s)) {
       const idArr = []
@@ -383,12 +392,15 @@ export default class MindMap extends Vue {
       mmdata.del(s.id)
     }
     this.updateMmdata()
+    this.$emit('del', s)
   }
   updateName(d: Mdata, name: string) {
+    console.log('edit trigger')
     if (d.name !== name) { // 有改变
       this.toRecord = true
       const nd = mmdata.rename(d.id, name)
       this.updateMmdata()
+      this.$emit('edit', d, name)
       return nd
     }
   }
@@ -444,7 +456,7 @@ export default class MindMap extends Vue {
         switch (keyName) {
           case 'Tab': {
             d3.event.preventDefault()
-            const nd = this.add(im, { name: '' })
+            const nd = this.add(im, { name: '子部门' })
             if (nd) {
               this.editNew(nd, seleDepth + 1, pNode)
             }
@@ -453,12 +465,12 @@ export default class MindMap extends Vue {
           case 'Enter': {
             d3.event.preventDefault()
             if (pNode === this.$refs.content) { // 根节点enter时，等效tab
-              const nd = this.add(im, { name: '' })
+              const nd = this.add(im, { name: '子部门' })
               if (nd) {
                 this.editNew(nd, seleDepth + 1, pNode)
               }
             } else {
-              const nd = this.insert(im, { name: '' }, 1)
+              const nd = this.insert(im, { name: '子部门' }, 1)
               if (nd) {
                 this.editNew(nd, seleDepth, pNode)
               }
@@ -630,7 +642,7 @@ export default class MindMap extends Vue {
     if ((n[i] as SVGElement).style.opacity === '1') {
       d3.event.stopPropagation()
       const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
-      const newD = this.add(d.data, { name: '' })
+      const newD = this.add(d.data, { name: '子部门' })
       this.mouseLeave(d, i, n)
       if (newD) {
         this.editNew(newD, d.depth + 1, n[i].parentNode as Element)

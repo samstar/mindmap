@@ -10,7 +10,8 @@ function initColor(d: Mdata, c?: string) { // 初始化颜色
   let color
   if (d.id !== '0') {
     color = c || colorScale(`${colorNumber += 1}`)
-    d.color = color
+    // d.color = color
+    d.color = '#ccc'
   }
   const { children, _children } = d
   if (children) {

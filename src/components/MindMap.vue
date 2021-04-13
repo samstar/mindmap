@@ -483,7 +483,7 @@ export default class MindMap extends Vue {
         switch (keyName) {
           case 'Tab': {
             d3.event.preventDefault()
-            const nd = this.add(im, { name: '子部门', id: id, path: `${im.path}.${id}`, parentId: im.id })
+            const nd = this.add(im, { name: '子部门', id: id, path: `${im.path}.${im.id}`, parentId: im.id })
             if (nd) {
               this.editNew(nd, seleDepth + 1, pNode)
             }
@@ -492,12 +492,12 @@ export default class MindMap extends Vue {
           case 'Enter': {
             d3.event.preventDefault()
             if (pNode === this.$refs.content) { // 根节点enter时，等效tab
-              const nd = this.add(im, { name: '子部门', id: id, path: `${im.path}.${id}`, parentId: im.id })
+              const nd = this.add(im, { name: '子部门', id: id, path: `${im.path}.${im.id}`, parentId: im.id })
               if (nd) {
                 this.editNew(nd, seleDepth + 1, pNode)
               }
             } else {
-              const nd = this.insert(im, { name: '子部门', id: id, path: `${pNodePath}.${id}`, parentId: im.parentId }, 1)
+              const nd = this.insert(im, { name: '子部门', id: id, path: `${pNodePath}.${im.parentId}`, parentId: im.parentId }, 1)
               if (nd) {
                 this.editNew(nd, seleDepth, pNode)
               }
@@ -670,7 +670,7 @@ export default class MindMap extends Vue {
       d3.event.stopPropagation()
       const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
       const id = this.generateUUID()
-      const newD = this.add(d.data, { name: '子部门', id: id, path: `${d.data.path}.${id}`, parentId: d.data.id })
+      const newD = this.add(d.data, { name: '子部门', id: id, path: `${d.data.path}.${d.data.id}`, parentId: d.data.id })
       this.mouseLeave(d, i, n)
       if (newD) {
         this.editNew(newD, d.depth + 1, n[i].parentNode as Element)

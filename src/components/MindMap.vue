@@ -588,7 +588,6 @@ export default class MindMap extends Vue {
     this.removeSelectedId()
     n.setAttribute('id', 'editing')
     const fObj = d3.select(n).selectAll('foreignObject').filter((a, b, c) => (c[b] as Element).parentNode === n) as d3.Selection<Element, FlexNode, Element, FlexNode>
-    console.log(fObj.node())
     this.focusNode(fObj)
     fObj.select('div').attr('contenteditable', true)
     const fdiv = document.querySelector('#editing > foreignObject > div')
@@ -677,7 +676,6 @@ export default class MindMap extends Vue {
       this.clearSelection()
       setTimeout(() => { this.$refs.menu.focus() }, 300)
     }
-    console.log(d)
     if (!this.editable) {
       this.contextMenuItems[0].disabled = true
     }

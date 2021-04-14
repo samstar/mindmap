@@ -24,7 +24,7 @@
       </div>
     </div>
     <div class="buttonList right-bottom">
-      <button v-show="gps" class="icon" ref="gps" type="button" @click="fitContent()">
+      <button v-show="gps" class="icon" ref="gps" type="button" @click="makeCenter()">
         <i class="gps"></i>
       </button>
       <button v-show="fitView" class="icon" ref="fitView" type="button" @click="fitContent()">
@@ -369,13 +369,13 @@ export default class MindMap extends Vue {
       // const gCenter = { x: rect.width * multiple, y: rect.height * multiple }
 
       // this.mindmapSvg.call(this.zoom.translateTo, -rect.x * multiple + svgCenter.x - gCenter.x, -rect.y * multiple + svgCenter.y - gCenter.y)
-      this.mindmapSvg.transition(this.easePolyInOut as any).call(this.zoom.scaleTo, multiple)
+      this.mindmapSvg.transition(this.easePolyInOut as any).call(this.zoom.scaleTo, multiple / 2)
     })
   }
   // 数据操作
   add(dParent: Mdata, d: Data) {
     console.log('add trigger')
-    this.toRecord = true
+    this.toRecord = false
     const nd = mmdata.add(dParent.index, d)
     this.updateMmdata()
     this.$emit('add', dParent, d)
@@ -483,7 +483,7 @@ export default class MindMap extends Vue {
         switch (keyName) {
           case 'Tab': {
             d3.event.preventDefault()
-            const nd = this.add(im, { name: '子部门', id: id, path: `${im.path}.${im.id}`, parentId: im.id })
+            const nd = this.add(im, { name: '子部门', id: id, path: im.path ? `${im.path}.${im.id}` : im.id, parentId: im.id })
             if (nd) {
               this.editNew(nd, seleDepth + 1, pNode)
             }
@@ -492,12 +492,12 @@ export default class MindMap extends Vue {
           case 'Enter': {
             d3.event.preventDefault()
             if (pNode === this.$refs.content) { // 根节点enter时，等效tab
-              const nd = this.add(im, { name: '子部门', id: id, path: `${im.path}.${im.id}`, parentId: im.id })
+              const nd = this.add(im, { name: '子部门', id: id, path: im.path ? `${im.path}.${im.id}` : im.id, parentId: im.id })
               if (nd) {
                 this.editNew(nd, seleDepth + 1, pNode)
               }
             } else {
-              const nd = this.insert(im, { name: '子部门', id: id, path: `${pNodePath}.${im.parentId}`, parentId: im.parentId }, 1)
+              const nd = this.insert(im, { name: '子部门', id: id, path: pNodePath ? `${pNodePath}.${im.parentId}` : im.parentId, parentId: im.parentId }, 1)
               if (nd) {
                 this.editNew(nd, seleDepth, pNode)
               }
@@ -670,7 +670,7 @@ export default class MindMap extends Vue {
       d3.event.stopPropagation()
       const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
       const id = this.generateUUID()
-      const newD = this.add(d.data, { name: '子部门', id: id, path: `${d.data.path}.${d.data.id}`, parentId: d.data.id })
+      const newD = this.add(d.data, { name: '子部门', id: id, path: d.data.path ? `${d.data.path}.${d.data.id}` : d.data.id, parentId: d.data.id })
       this.mouseLeave(d, i, n)
       if (newD) {
         this.editNew(newD, d.depth + 1, n[i].parentNode as Element)
@@ -1076,7 +1076,7 @@ export default class MindMap extends Vue {
   }
   addWatch() {
     this.$watch('value', (newVal) => {
-      if (this.toUpdate) {
+      if (this.toUpdate && newVal && newVal.length > 0) {
         mmdata = new ImData(newVal[0], this.getSize)
         this.updateMmdata()
       } else {

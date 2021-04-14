@@ -176,8 +176,10 @@ export default class MindMap extends Vue {
   }
   get svgClass() { return `stroke-width-${this.strokeWidth} ${this.spaceKey && this.zoomable ? 'grab' : ''}` }
   get optionTip() { return this.optionList[this.selectedOption].tip }
-  get canUndo() { return this.history.canUndo }
-  get canRedo() { return this.history.canRedo }
+  // get canUndo() { return this.history.canUndo }
+  get canUndo() { return false }
+  // get canRedo() { return this.history.canRedo }
+  get canRedo() { return false }
   get seleBox() {
     const { x0, x1, y0, y1 } = this.mouse
     const x = Math.min(x0, x1)
@@ -369,7 +371,7 @@ export default class MindMap extends Vue {
       // const gCenter = { x: rect.width * multiple, y: rect.height * multiple }
 
       // this.mindmapSvg.call(this.zoom.translateTo, -rect.x * multiple + svgCenter.x - gCenter.x, -rect.y * multiple + svgCenter.y - gCenter.y)
-      this.mindmapSvg.transition(this.easePolyInOut as any).call(this.zoom.scaleTo, multiple / 2)
+      this.mindmapSvg.transition(this.easePolyInOut as any).call(this.zoom.scaleTo, multiple * 0.75)
     })
   }
   // 数据操作

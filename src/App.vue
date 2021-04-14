@@ -20,6 +20,7 @@
                 <div class="d-flex flex-grow-1">
                   <mindmap
                     v-model="mmdata"
+                    :editable="true"
                     :gps="options.gps.value"
                     :fitView="options.fitView.value"
                     :draggable="options.draggable.value"

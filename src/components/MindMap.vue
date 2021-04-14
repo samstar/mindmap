@@ -30,9 +30,15 @@
       <button v-show="fitView" class="icon" ref="fitView" type="button" @click="fitContent()">
         <i class="fitView"></i>
       </button>
-      <button v-show="download" class="icon" ref="download" type="button" @click="showPopUps=true">
-        <i class="download"></i>
+      <button class="icon" ref="zoomOut" type="button" @click="zoomOut()">
+        <i class="zoomOut"></i>
       </button>
+      <button class="icon" ref="zoomIn" type="button" @click="zoomIn()">
+        <i class="zoomIn"></i>
+      </button>
+      <!-- <button v-show="download" class="icon" ref="download" type="button" @click="showPopUps=true">
+        <i class="download"></i>
+      </button> -->
     </div>
     <div class="buttonList top-right">
       <button v-show="showUndo" class="icon" :class="{disabled: !canUndo}" ref="undo"
@@ -90,6 +96,7 @@ export default class MindMap extends Vue {
   @Prop() height: number | undefined
   @Prop({ default: 50 }) xSpacing!: number
   @Prop({ default: 20 }) ySpacing!: number
+  @Prop({ default: false }) editable!: boolean
   @Prop({ default: true }) draggable!: boolean
   @Prop({ default: true }) gps!: boolean
   @Prop({ default: true }) fitView!: boolean
@@ -374,6 +381,16 @@ export default class MindMap extends Vue {
       this.mindmapSvg.transition(this.easePolyInOut as any).call(this.zoom.scaleTo, multiple * 0.75)
     })
   }
+  zoomOut() { // 放大
+    const current = d3.zoomTransform(this.$refs.svg)
+    console.log(current.k)
+    this.zoom.scaleTo(this.mindmapSvg, current.k * 1.1)
+  }
+  zoomIn() { // 缩小
+    const current = d3.zoomTransform(this.$refs.svg)
+    console.log(current.k)
+    this.zoom.scaleTo(this.mindmapSvg, current.k * 0.9)
+  }
   // 数据操作
   add(dParent: Mdata, d: Data) {
     console.log('add trigger')
@@ -462,6 +479,9 @@ export default class MindMap extends Vue {
     const keyName = event.key as string
     // 针对导图的操作
     if (keyName === ' ' && !this.spaceKey) { this.spaceKey = true }
+    if (!this.editable) {
+      return false
+    }
     if (event.metaKey) {
       if (keyName === 'z') { // 撤销
         d3.event.preventDefault()
@@ -530,8 +550,12 @@ export default class MindMap extends Vue {
   updateNodeName() { // 文本编辑完成时
     const editP = document.querySelector('#editing > foreignObject > div') as HTMLDivElement
     window.getSelection()?.removeAllRanges() // 清除选中
-    const editText = editP.innerText || ''
+    let editText = editP.innerText || '子部门'
     this.mindmapG.select('g#editing').each((d, i, n) => {
+      if (editP.innerText.trim() === '') {
+        editP.innerText = d.data.name || '子部门'
+        editText = editP.innerText || '子部门'
+      }
       (n[i] as Element).removeAttribute('id')
       const nd = this.updateName(d.data, editText)
       if (nd) {
@@ -554,10 +578,17 @@ export default class MindMap extends Vue {
       n.setAttribute('id', 'selectedNode')
     }
   }
-  editNode(n: Element) { // 编辑节点
+  editNode(n: Element, d: FlexNode | null) { // 编辑节点
+    if (!this.editable) {
+      return false
+    }
+    if (d && d.data.id === '0') {
+      return false
+    }
     this.removeSelectedId()
     n.setAttribute('id', 'editing')
     const fObj = d3.select(n).selectAll('foreignObject').filter((a, b, c) => (c[b] as Element).parentNode === n) as d3.Selection<Element, FlexNode, Element, FlexNode>
+    console.log(fObj.node())
     this.focusNode(fObj)
     fObj.select('div').attr('contenteditable', true)
     const fdiv = document.querySelector('#editing > foreignObject > div')
@@ -589,7 +620,7 @@ export default class MindMap extends Vue {
         .filter((b) => (b as FlexNode).data.index === newD.index)
         .node()
 
-      this.editNode(node as Element)
+      this.editNode(node as Element, null)
     }, (err) => {
       console.log(err)
     })
@@ -624,7 +655,7 @@ export default class MindMap extends Vue {
       && n[i].parentNode === sele
       && document.activeElement !== n[i].firstElementChild
       && !dragFlag) {
-        this.editNode(sele)
+        this.editNode(sele, d)
         sele.setAttribute('__click__', '0')
       } else {
         sele.setAttribute('__click__', '1')
@@ -645,6 +676,10 @@ export default class MindMap extends Vue {
       this.showContextMenu = true
       this.clearSelection()
       setTimeout(() => { this.$refs.menu.focus() }, 300)
+    }
+    console.log(d)
+    if (!this.editable) {
+      this.contextMenuItems[0].disabled = true
     }
     if (clickedNode.classList.contains('multiSelectedNode')) {
       const t: Mdata[] = []
@@ -762,11 +797,13 @@ export default class MindMap extends Vue {
             height: d.size[0],
           }
           // 重叠触发矩形边框
-          if ((targetY > rect.y) && (targetY < rect.y + rect.width)
-          && (targetX > rect.x) && (targetX < rect.x + rect.height)) {
-            gNode.setAttribute('id', 'newParentNode')
-          } else if (gNode.getAttribute('id') === 'newParentNode') {
-            gNode.removeAttribute('id')
+          if (this.editable) {
+            if ((targetY > rect.y) && (targetY < rect.y + rect.width)
+            && (targetX > rect.x) && (targetX < rect.x + rect.height)) {
+              gNode.setAttribute('id', 'newParentNode')
+            } else if (gNode.getAttribute('id') === 'newParentNode') {
+              gNode.removeAttribute('id')
+            }
           }
         })
     }

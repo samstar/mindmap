@@ -49,6 +49,8 @@ button.icon {
     &.gps { background-image: url(../../public/icons/24px/crosshairs-gps.png); }
     &.fitView { background-image: url(../../public/icons/24px/fit-to-page-outline.png); }
     &.download { background-image: url(../../public/icons/24px/download.png); }
+    &.zoomOut { background-image: url(../../public/icons/24px/zoomOut.png); background-size: contain; }
+    &.zoomIn { background-image: url(../../public/icons/24px/zoomIn.png);  background-size: contain; }
     &.undo { background-image: url(../../public/icons/24px/undo.png); }
     &.redo { background-image: url(../../public/icons/24px/redo.png); }
     &.close { background-image: url(../../public/icons/24px/close.png); }
@@ -165,7 +167,7 @@ div#mindmap {
 
     #selectedNode.depth_0 > foreignObject {
       outline: 3px solid;
-      outline-color: $seleColor;
+      outline-color: rgba(56, 188, 157, 0.5);
     }
 
     .multiSelectedNode:not(.depth_0) > foreignObject {
@@ -178,10 +180,15 @@ div#mindmap {
     }
 
     #newParentNode > foreignObject {
-      border-color: $seleColor;
+      border-color: rgba(56, 188, 157, 0.5);
+    }
+
+    #newParentNode.depth_0 > foreignObject {
+      border-color: #fc7859;
     }
 
     #editing > foreignObject > div {
+      color: #333;
       background-color: white;
     }
 
@@ -211,6 +218,7 @@ div#mindmap {
     .menu-item {
       position: relative;
       padding: 0px 20px;
+      width: 100px;
       cursor: pointer;
 
       &::before {
@@ -243,10 +251,10 @@ div#mindmap {
     &.right-bottom { bottom: 0; right: 0; }
     &.top-right { top: 0; right: 0; display: flex; flex-direction: row; }
 
-    i { filter: invert(25%) sepia(40%) saturate(5050%) hue-rotate(227deg) brightness(78%) contrast(74%); }
+    i.gps, i.fitView { filter: invert(66%) sepia(49%) saturate(544%) hue-rotate(116deg) brightness(88%) contrast(83%) }
 
     button.icon.disabled {
-      i { filter: invert(85%) sepia(20%) saturate(0%) hue-rotate(125deg) brightness(86%) contrast(93%); }
+      i.gps, i.fitView { filter: invert(85%) sepia(20%) saturate(0%) hue-rotate(125deg) brightness(86%) contrast(93%); }
     }
   }
 

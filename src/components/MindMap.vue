@@ -676,8 +676,10 @@ export default class MindMap extends Vue {
       this.clearSelection()
       setTimeout(() => { this.$refs.menu.focus() }, 300)
     }
-    if (!this.editable) {
+    if (!this.editable || d.data.id === '0') {
       this.contextMenuItems[0].disabled = true
+    } else {
+      this.contextMenuItems[0].disabled = false
     }
     if (clickedNode.classList.contains('multiSelectedNode')) {
       const t: Mdata[] = []

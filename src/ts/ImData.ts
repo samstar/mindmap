@@ -110,9 +110,13 @@ function initLeft(d: Mdata, left = false) {
 
 class ImData {
   data: Mdata
-  constructor(d: Data, fn: Function) {
+  rootId: string
+  separator: string
+  constructor(d: Data, fn: Function, rootId: string, separator: string) {
     size = fn
     this.data = JSON.parse(JSON.stringify(d))
+    this.rootId = rootId
+    this.separator = separator
     initId(this.data)
     initColor(this.data)
     initSize(this.data)

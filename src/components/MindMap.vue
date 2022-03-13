@@ -92,6 +92,9 @@ import toMarkdown from '../ts/toMarkdown'
 let mmdata: ImData // 思维导图数据
 @Component
 export default class MindMap extends Vue {
+  @Prop({ default: '0' }) rootId!: string
+  @Prop({ default: '-' }) separator!: string
+  @Prop({ default: '-' }) uuidSeparator!: string
   @Prop() width: number | undefined
   @Prop() height: number | undefined
   @Prop({ default: 50 }) xSpacing!: number
@@ -242,7 +245,7 @@ export default class MindMap extends Vue {
   }
   generateUUID() {
     let d = new Date().getTime()
-    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const uuid = `xxxxxxxx${this.uuidSeparator}xxxx${this.uuidSeparator}4xxx${this.uuidSeparator}yxxx${this.uuidSeparator}xxxxxxxxxxxx`.replace(/[xy]/g, function(c) {
       const r = (d + Math.random() * 16) % 16 | 0
       d = Math.floor(d / 16)
       return (c === 'x' ? r : (r & 0x7 | 0x8)).toString(16)
@@ -505,7 +508,7 @@ export default class MindMap extends Vue {
         switch (keyName) {
           case 'Tab': {
             d3.event.preventDefault()
-            const nd = this.add(im, { name: '子部门', id: id, path: im.path ? `${im.path}.${im.id}` : im.id, parentId: im.id })
+            const nd = this.add(im, { name: '子部门', id: id, path: im.path ? `${im.path}${this.separator}${im.id}` : im.id, parentId: im.id })
             if (nd) {
               this.editNew(nd, seleDepth + 1, pNode)
             }
@@ -514,12 +517,12 @@ export default class MindMap extends Vue {
           case 'Enter': {
             d3.event.preventDefault()
             if (pNode === this.$refs.content) { // 根节点enter时，等效tab
-              const nd = this.add(im, { name: '子部门', id: id, path: im.path ? `${im.path}.${im.id}` : im.id, parentId: im.id })
+              const nd = this.add(im, { name: '子部门', id: id, path: im.path ? `${im.path}${this.separator}${im.id}` : im.id, parentId: im.id })
               if (nd) {
                 this.editNew(nd, seleDepth + 1, pNode)
               }
             } else {
-              const nd = this.insert(im, { name: '子部门', id: id, path: pNodePath ? `${pNodePath}.${im.parentId}` : im.parentId, parentId: im.parentId }, 1)
+              const nd = this.insert(im, { name: '子部门', id: id, path: pNodePath ? `${pNodePath}${this.separator}${im.parentId}` : im.parentId, parentId: im.parentId }, 1)
               if (nd) {
                 this.editNew(nd, seleDepth, pNode)
               }
@@ -582,7 +585,7 @@ export default class MindMap extends Vue {
     if (!this.editable) {
       return false
     }
-    if (d && d.data.id === '0') {
+    if (d && d.data.id === this.rootId) {
       return false
     }
     this.removeSelectedId()
@@ -676,7 +679,7 @@ export default class MindMap extends Vue {
       this.clearSelection()
       setTimeout(() => { this.$refs.menu.focus() }, 300)
     }
-    if (!this.editable || d.data.id === '0') {
+    if (!this.editable || d.data.id === this.rootId) {
       this.contextMenuItems[0].disabled = true
     } else {
       this.contextMenuItems[0].disabled = false
@@ -707,7 +710,7 @@ export default class MindMap extends Vue {
       d3.event.stopPropagation()
       const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
       const id = this.generateUUID()
-      const newD = this.add(d.data, { name: '子部门', id: id, path: d.data.path ? `${d.data.path}.${d.data.id}` : d.data.id, parentId: d.data.id })
+      const newD = this.add(d.data, { name: '子部门', id: id, path: d.data.path ? `${d.data.path}${this.separator}${d.data.id}` : d.data.id, parentId: d.data.id })
       this.mouseLeave(d, i, n)
       if (newD) {
         this.editNew(newD, d.depth + 1, n[i].parentNode as Element)
@@ -1116,7 +1119,7 @@ export default class MindMap extends Vue {
   addWatch() {
     this.$watch('value', (newVal) => {
       if (this.toUpdate && newVal && newVal.length > 0) {
-        mmdata = new ImData(newVal[0], this.getSize)
+        mmdata = new ImData(newVal[0], this.getSize, this.rootId, this.separator)
         this.updateMmdata()
       } else {
         this.toUpdate = true

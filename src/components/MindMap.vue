@@ -95,6 +95,7 @@ export default class MindMap extends Vue {
   @Prop({ default: '0' }) rootId!: string
   @Prop({ default: '-' }) separator!: string
   @Prop({ default: '-' }) uuidSeparator!: string
+  @Prop({ default: 0 }) textMaxLength!: number
   @Prop() width: number | undefined
   @Prop() height: number | undefined
   @Prop({ default: 50 }) xSpacing!: number
@@ -558,6 +559,10 @@ export default class MindMap extends Vue {
       if (editP.innerText.trim() === '') {
         editP.innerText = d.data.name || '子部门'
         editText = editP.innerText || '子部门'
+      }
+      if (this.textMaxLength !== 0 && editText.length > this.textMaxLength) {
+        editText = editText.slice(0, this.textMaxLength)
+        editP.innerText = editText
       }
       (n[i] as Element).removeAttribute('id')
       const nd = this.updateName(d.data, editText)
